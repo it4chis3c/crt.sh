@@ -1,11 +1,10 @@
 #!/bin/bash
 
-# Display banner
 echo "
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      ..| search crt.sh |..          |
+|               crt.sh                |
 +   site : crt.sh Certificate Search  +
-|        Twitter: it4chis3c           |
+|         Twitter: it4chis3c          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 "
 
@@ -15,10 +14,10 @@ Help() {
     echo "Options:"
     echo ""
     echo "-h          Help"
-    echo "-d          Search Domain Name       | Example: $0 -d hackerone.com"
-    echo "-o          Search Organization Name | Example: $0 -o hackerone+inc"
+    echo "-d          Search Domain Name  ( $0 -d hackerone.com )"
+    echo "-org        Search Organization Name ( $0 -org hackerone+inc )"
     echo "-f <file>   Specify file with list of domains to search"
-    echo "-output     Specify output file to save results"
+    echo "-o          Specify output file to save results"
     echo ""
 }
 
@@ -82,7 +81,7 @@ Organization() {
 # Main Script Logic
 output_file="output/results.txt"
 
-while getopts "h:d:o:f:output:" option; do
+while getopts "h:d:o:f:-:" option; do
     case $option in
         h) # Display help
             Help
@@ -92,9 +91,8 @@ while getopts "h:d:o:f:output:" option; do
             req=$OPTARG
             Domain "$req" "$output_file"
             ;;
-        o) # Search for organization name
-            req=$OPTARG
-            Organization "$req" "$output_file"
+        o) # Custom output file
+            output_file=$OPTARG
             ;;
         f) # File containing a list of domains
             file=$OPTARG
@@ -107,8 +105,17 @@ while getopts "h:d:o:f:output:" option; do
                 exit 1
             fi
             ;;
-        output) # Custom output file
-            output_file=$OPTARG
+        -) # Handle long options
+            case "$OPTARG" in
+                org) # Search for organization name
+                    val="${!OPTIND}"; OPTIND=$((OPTIND + 1))
+                    Organization "$val" "$output_file"
+                    ;;
+                *) # Invalid option, display help
+                    Help
+                    exit 1
+                    ;;
+            esac
             ;;
         *) # Invalid option, display help
             Help
